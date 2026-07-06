@@ -1,0 +1,41 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: rgb(10 10 8 / 0.88);
+  cursor: zoom-out;
+}
+
+.image {
+  max-width: min(920px, 100%);
+  max-height: calc(100vh - 4rem);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-2);
+  cursor: default;
+}
+
+.close {
+  position: absolute;
+  top: 1.2rem;
+  right: 1.2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgb(255 255 255 / 0.3);
+  border-radius: 50%;
+  background: rgb(0 0 0 / 0.4);
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.close:hover {
+  background: var(--c-red);
+  border-color: var(--c-red);
+}

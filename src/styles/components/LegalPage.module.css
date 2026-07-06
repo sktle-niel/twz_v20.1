@@ -1,0 +1,26 @@
+.header {
+  padding-block: 3.2rem;
+  background: var(--c-ink);
+  color: var(--c-yellow);
+}
+
+.prose {
+  max-width: 760px;
+}
+
+.intro {
+  font-size: 1.05rem;
+  color: var(--c-text);
+}
+
+.prose h2 {
+  margin-top: 2.2rem;
+  margin-bottom: 0.6rem;
+  font-size: 1.4rem;
+}
+
+.prose p {
+  margin-bottom: 0.7rem;
+  font-size: 0.95rem;
+  color: var(--c-text);
+}

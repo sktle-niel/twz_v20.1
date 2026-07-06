@@ -1,0 +1,353 @@
+/* ── Floating reopen pill ── */
+.pill {
+  position: fixed;
+  right: 1.1rem;
+  bottom: 1.1rem;
+  z-index: 55;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.68rem 1.15rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--c-yellow);
+  color: var(--c-ink);
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: var(--shadow-2);
+  animation: pill-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transition: transform 0.18s ease, background-color 0.18s ease;
+}
+
+.pill:hover {
+  background: var(--c-yellow-deep);
+  transform: translateY(-2px);
+}
+
+@keyframes pill-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+/* ── Backdrop: bottom sheet on mobile/tablet, centered modal on desktop ── */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 85;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgb(10 10 8 / 0.62);
+  animation: backdrop-in 0.25s ease both;
+}
+
+@keyframes backdrop-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.sheet {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-height: 92dvh;
+  background: var(--c-paper);
+  color: var(--c-text);
+  border-radius: var(--radius) var(--radius) 0 0;
+  animation: sheet-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes sheet-up {
+  from {
+    opacity: 0;
+    transform: translateY(48px);
+  }
+}
+
+/* ── Header ── */
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.1rem 1.4rem 0.85rem;
+}
+
+.title {
+  display: block;
+  font-size: 1.02rem;
+  font-weight: 700;
+}
+
+.kicker {
+  margin-top: 0.15rem;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+}
+
+.close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border: 1.5px solid var(--c-line);
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--c-text);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.close:hover {
+  border-color: var(--c-ink);
+  background: var(--c-paper-2);
+}
+
+/* ── Progress ── */
+.progress {
+  height: 3px;
+  background: var(--c-line);
+  overflow: hidden;
+}
+
+.progress span {
+  display: block;
+  height: 100%;
+  background: var(--c-yellow);
+  transform-origin: left;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ── Body ── */
+.formArea {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 1.35rem 1.4rem 1.5rem;
+}
+
+.question {
+  font-family: var(--font-body);
+  font-size: 1.38rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1.25;
+  text-transform: none;
+}
+
+.sub {
+  margin-top: 0.35rem;
+  font-size: 0.92rem;
+  color: var(--c-muted);
+}
+
+.fields {
+  display: grid;
+  gap: 1.05rem;
+  margin-top: 1.35rem;
+}
+
+.amountInput {
+  font-size: 1.08rem;
+  font-weight: 600;
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: var(--c-muted);
+}
+
+.readout {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--c-green-deep);
+}
+
+.errorText {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #9c2317;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chip {
+  padding: 0.38rem 0.85rem;
+  border: 1.5px solid var(--c-line);
+  border-radius: 999px;
+  background: var(--c-paper);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--c-text);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.chip:hover {
+  border-color: var(--c-ink);
+}
+
+.chipActive {
+  border-color: var(--c-ink);
+  background: var(--c-ink);
+  color: var(--c-yellow);
+}
+
+/* ── Option cards (yes/no + income sources) ── */
+.options {
+  display: grid;
+  gap: 0.85rem;
+  margin-top: 1.35rem;
+}
+
+.option {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.85rem;
+  align-items: flex-start;
+  width: 100%;
+  padding: 1.05rem 1.15rem;
+  border: 1.5px solid var(--c-line);
+  border-radius: var(--radius);
+  background: var(--c-paper);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.option:hover {
+  border-color: var(--c-green-deep);
+  transform: translateY(-1px);
+}
+
+.optionActive {
+  border-color: var(--c-green-deep);
+  box-shadow: 0 0 0 1px var(--c-green-deep);
+}
+
+.radio {
+  width: 20px;
+  height: 20px;
+  margin-top: 0.1rem;
+  border: 2px solid var(--c-line);
+  border-radius: 50%;
+  transition: border-color 0.15s ease;
+}
+
+.optionActive .radio {
+  border-color: var(--c-green-deep);
+  border-width: 6px;
+}
+
+.optionLabel {
+  display: block;
+  font-weight: 600;
+}
+
+.optionDesc {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.86rem;
+  color: var(--c-muted);
+}
+
+.otherField {
+  margin-top: 1rem;
+}
+
+/* ── Success ── */
+.done {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.6rem 0.5rem 0.8rem;
+  text-align: center;
+}
+
+.done svg {
+  color: var(--c-green-deep);
+  margin-bottom: 0.4rem;
+}
+
+.done .sub {
+  max-width: 34ch;
+  margin-bottom: 1.2rem;
+}
+
+/* ── Footer ── */
+.foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1.4rem;
+  border-top: 1px solid var(--c-line);
+}
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.4rem 0.5rem;
+  border: 0;
+  background: none;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--c-muted);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.backBtn:hover {
+  color: var(--c-ink);
+}
+
+.continue:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ── Desktop: centered modal ── */
+@media (min-width: 961px) {
+  .backdrop {
+    align-items: center;
+    padding: 2rem;
+  }
+
+  .sheet {
+    width: min(520px, 100%);
+    max-height: min(680px, 90dvh);
+    border-radius: var(--radius);
+  }
+
+  @keyframes sheet-up {
+    from {
+      opacity: 0;
+      transform: translateY(22px);
+    }
+  }
+}

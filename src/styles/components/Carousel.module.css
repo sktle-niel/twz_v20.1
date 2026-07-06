@@ -1,0 +1,103 @@
+.carousel {
+  position: relative;
+  min-height: clamp(480px, 72vh, 680px);
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  background: var(--c-ink);
+}
+
+.slide {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  transform: scale(1.04);
+  transition: opacity 0.9s ease, transform 6s linear;
+}
+
+.slideActive {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgb(10 10 8 / 0.86) 0%, rgb(10 10 8 / 0.55) 55%, rgb(10 10 8 / 0.25) 100%);
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+}
+
+.arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border: 1px solid rgb(255 255 255 / 0.35);
+  border-radius: 50%;
+  background: rgb(0 0 0 / 0.35);
+  color: #fff;
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.arrow:hover {
+  background: var(--c-yellow);
+  border-color: var(--c-yellow);
+  color: var(--c-ink);
+}
+
+.arrowPrev {
+  left: 1.2rem;
+}
+
+.arrowNext {
+  right: 1.2rem;
+}
+
+.dots {
+  position: absolute;
+  bottom: 1.4rem;
+  left: 50%;
+  z-index: 2;
+  display: flex;
+  gap: 0.55rem;
+  transform: translateX(-50%);
+}
+
+.dot {
+  width: 34px;
+  height: 18px;
+  padding: 7px 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.45);
+  background-clip: content-box;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.dot:hover {
+  transform: scaleY(1.4);
+}
+
+.dotActive {
+  background-color: var(--c-yellow);
+}
+
+@media (max-width: 700px) {
+  .arrow {
+    display: none;
+  }
+}

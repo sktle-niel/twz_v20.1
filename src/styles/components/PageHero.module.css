@@ -1,0 +1,46 @@
+.hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: clamp(320px, 46vh, 460px);
+  background-size: cover;
+  background-position: center;
+  color: #fff;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgb(10 10 8 / 0.82) 0%, rgb(10 10 8 / 0.55) 55%, rgb(10 10 8 / 0.3) 100%);
+}
+
+.content {
+  position: relative;
+  padding-block: 3rem;
+  max-width: none;
+}
+
+.kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.7rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--c-yellow);
+}
+
+.kicker::before {
+  content: '';
+  width: 26px;
+  height: 4px;
+  background: var(--c-yellow);
+}
+
+.lede {
+  max-width: 56ch;
+  margin-top: 1rem;
+  color: rgb(255 255 255 / 0.85);
+}
