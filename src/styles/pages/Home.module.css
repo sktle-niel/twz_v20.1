@@ -240,10 +240,16 @@
   color: var(--c-muted-on-dark);
 }
 
+.franchiseImgWrap {
+  justify-self: center;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
 .franchiseImg {
   width: 100%;
   max-width: 460px;
-  justify-self: center;
   filter: drop-shadow(0 18px 30px rgb(0 0 0 / 0.45));
 }
 
@@ -272,8 +278,11 @@
     text-align: left;
   }
 
-  .franchiseImg {
+  .franchiseImgWrap {
     order: -1;
+  }
+
+  .franchiseImg {
     max-width: 320px;
   }
 }

@@ -195,6 +195,15 @@ h3 {
   transform: translateY(0) scale(0.98);
 }
 
+/* Icon nudge: the arrow (or send glyph) leans into the action on hover. */
+.btn svg {
+  transition: transform 0.18s ease;
+}
+
+.btn:hover svg {
+  transform: translateX(3px);
+}
+
 .btn--solid {
   background: var(--c-yellow);
   color: var(--c-ink);

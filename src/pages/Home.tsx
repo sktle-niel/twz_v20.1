@@ -1,8 +1,11 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight } from 'lucide-react'
+import { motion, useReducedMotion, type Variants } from 'motion/react'
 import { FacebookIcon } from '../components/icons'
 import Carousel, { type Slide } from '../components/Carousel'
 import SectionHeading from '../components/SectionHeading'
+import Reveal, { EASE } from '../components/motion/Reveal'
+import Parallax from '../components/motion/Parallax'
 import { useFranchiseWizard } from '../components/FranchiseWizard'
 import { usePageTitle } from '../hooks/usePageTitle'
 import { SITE } from '../data/site'
@@ -17,6 +20,17 @@ import aboutImg from '../assets/about/franchise.jpg'
 import motorImg from '../assets/branding/motor.png'
 import css from '../styles/pages/Home.module.css'
 
+/* Hero entrance: kicker, headline, lede, and CTAs arrive in reading order. */
+const heroStagger: Variants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.11, delayChildren: 0.1 } },
+}
+
+const heroRise: Variants = {
+  hidden: { opacity: 0, y: 30 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: EASE } },
+}
+
 const SLIDES: Slide[] = [
   { image: storefront, alt: 'Two Wheels Zone storefront in Palawan' },
   { image: hero2, alt: 'Motorcycle service bay' },
@@ -28,22 +42,30 @@ const SLIDES: Slide[] = [
 export default function Home() {
   usePageTitle()
   const openFranchise = useFranchiseWizard()
+  const reduce = useReducedMotion()
 
   return (
     <>
       {/* ── Hero ── */}
       <Carousel slides={SLIDES}>
         <div className="container">
-          <div className={css.hero}>
-            <p className={css.heroKicker}>Motorcycle Service · Parts · Accessories</p>
-            <h1 className={css.heroTitle}>
+          <motion.div
+            className={css.hero}
+            variants={heroStagger}
+            initial={reduce ? false : 'hidden'}
+            animate="show"
+          >
+            <motion.p variants={heroRise} className={css.heroKicker}>
+              Motorcycle Service · Parts · Accessories
+            </motion.p>
+            <motion.h1 variants={heroRise} className={css.heroTitle}>
               <span>Alagang Casa</span> para sa mga Motorista
-            </h1>
-            <p className={css.heroLede}>
+            </motion.h1>
+            <motion.p variants={heroRise} className={css.heroLede}>
               CASA-quality motorcycle care, genuine parts, and expert technicians at
               prices riders can afford. Proudly serving Palawan since {SITE.since}.
-            </p>
-            <div className={css.heroActions}>
+            </motion.p>
+            <motion.div variants={heroRise} className={css.heroActions}>
               <Link to="/services" className="btn btn--solid">
                 Explore Services
               </Link>
@@ -54,24 +76,26 @@ export default function Home() {
               >
                 Franchise Now
               </button>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
       </Carousel>
 
       {/* ── Casa Quality banner ── */}
       <section className={css.casaBand}>
         <div className={`container ${css.casaBandInner}`}>
-          <div>
+          <Reveal y={20}>
             <h2>Services, Parts & Accessories</h2>
             <p>
               From essential motorcycle care to genuine replacement parts and quality
               upgrades. Everything your ride needs, done the Casa way.
             </p>
-          </div>
-          <Link to="/casa-quality" className="btn btn--dark">
-            Explore Casa Quality <ArrowRight size={18} aria-hidden />
-          </Link>
+          </Reveal>
+          <Reveal y={20} delay={0.12}>
+            <Link to="/casa-quality" className="btn btn--dark">
+              Explore Casa Quality <ArrowRight size={18} aria-hidden />
+            </Link>
+          </Reveal>
         </div>
       </section>
 
@@ -104,13 +128,20 @@ export default function Home() {
             lede="FI cleaning to full overhauls, handled by skilled technicians with the right equipment."
           />
           <ul className={css.serviceGrid}>
-            {FEATURED_SERVICES.map(({ name, icon: Icon }) => (
-              <li key={name} className={css.serviceTile}>
+            {FEATURED_SERVICES.map(({ name, icon: Icon }, i) => (
+              <motion.li
+                key={name}
+                className={css.serviceTile}
+                initial={reduce ? false : { opacity: 0, y: 22 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.3 }}
+                transition={{ duration: 0.55, delay: (i % 4) * 0.07, ease: EASE }}
+              >
                 <span className={css.serviceIcon}>
                   <Icon size={26} aria-hidden />
                 </span>
                 {name}
-              </li>
+              </motion.li>
             ))}
           </ul>
           <div className={css.servicesCta}>
@@ -172,13 +203,15 @@ export default function Home() {
               Franchise Now
             </button>
           </div>
-          <img
-            className={css.franchiseImg}
-            src={motorImg}
-            alt=""
-            role="presentation"
-            loading="lazy"
-          />
+          <Parallax range={30} className={css.franchiseImgWrap}>
+            <img
+              className={css.franchiseImg}
+              src={motorImg}
+              alt=""
+              role="presentation"
+              loading="lazy"
+            />
+          </Parallax>
         </div>
       </section>
     </>

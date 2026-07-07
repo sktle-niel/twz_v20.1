@@ -3,9 +3,18 @@
   display: flex;
   align-items: center;
   min-height: clamp(320px, 46vh, 460px);
+  overflow: hidden;
+  color: #fff;
+  background: var(--c-ink);
+}
+
+/* Parallax photo layer — oversized so the drift never exposes an edge. */
+.bg {
+  position: absolute;
+  inset: -12% 0 0;
   background-size: cover;
   background-position: center;
-  color: #fff;
+  will-change: transform;
 }
 
 .overlay {

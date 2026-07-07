@@ -1,5 +1,6 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react'
 import css from '../styles/components/Carousel.module.css'
 
 export interface Slide {
@@ -17,6 +18,17 @@ export default function Carousel({ slides, interval = 6000, children }: Carousel
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
   const count = slides.length
+  const ref = useRef<HTMLElement>(null)
+  const reduce = useReducedMotion()
+
+  /* Parallax exit: as the hero scrolls out, the imagery lags behind the page
+     (depth) while the copy drifts up faster and fades (focus hand-off).
+     Driven by raw scrollY (the hero always sits at the page top), which stays
+     stable even while a modal locks body scroll. */
+  const { scrollY } = useScroll()
+  const bgY = useTransform(scrollY, [0, 800], ['0%', '16%'])
+  const contentY = useTransform(scrollY, [0, 800], ['0%', '-30%'])
+  const contentOpacity = useTransform(scrollY, [0, 560], [1, 0])
 
   useEffect(() => {
     if (paused || count < 2) return
@@ -29,25 +41,33 @@ export default function Carousel({ slides, interval = 6000, children }: Carousel
 
   return (
     <section
+      ref={ref}
       className={css.carousel}
       aria-roledescription="carousel"
       aria-label="Two Wheels Zone highlights"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      {slides.map((slide, i) => (
-        <div
-          key={slide.image}
-          className={`${css.slide} ${i === index ? css.slideActive : ''}`}
-          style={{ backgroundImage: `url(${slide.image})` }}
-          role="img"
-          aria-label={slide.alt}
-          aria-hidden={i !== index}
-        />
-      ))}
+      <motion.div className={css.slides} style={reduce ? undefined : { y: bgY }}>
+        {slides.map((slide, i) => (
+          <div
+            key={slide.image}
+            className={`${css.slide} ${i === index ? css.slideActive : ''}`}
+            style={{ backgroundImage: `url(${slide.image})` }}
+            role="img"
+            aria-label={slide.alt}
+            aria-hidden={i !== index}
+          />
+        ))}
+      </motion.div>
       <div className={css.overlay} />
 
-      <div className={css.content}>{children}</div>
+      <motion.div
+        className={css.content}
+        style={reduce ? undefined : { y: contentY, opacity: contentOpacity }}
+      >
+        {children}
+      </motion.div>
 
       {count > 1 && (
         <>

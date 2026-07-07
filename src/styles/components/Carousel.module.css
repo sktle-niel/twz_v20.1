@@ -7,6 +7,13 @@
   background: var(--c-ink);
 }
 
+/* Parallax layer holding every slide; translated as one unit on scroll. */
+.slides {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+
 .slide {
   position: absolute;
   inset: 0;
