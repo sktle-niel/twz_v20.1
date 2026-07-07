@@ -1,7 +1,7 @@
 /* Franchise qualification rules and shared options. */
 
-/* Applications below this amount cannot proceed. */
-export const MIN_FRANCHISE_INVESTMENT = 1_200_000
+/* Applications below this amount cannot proceed (the package price itself). */
+export const MIN_FRANCHISE_INVESTMENT = 1_300_000
 
 /* The standard franchise package amount offered as a one-click preset. */
 export const SUGGESTED_INVESTMENT = 1_300_000

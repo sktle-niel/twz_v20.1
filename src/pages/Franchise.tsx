@@ -11,6 +11,7 @@ import {
 } from '../data/franchise'
 import { COUNTRIES, getCountry } from '../data/countries'
 import { isMeaningfulText, isValidFullName } from '../lib/validate'
+import { ApiError, postJson } from '../lib/api'
 import heroImg from '../assets/about/franchise.jpg'
 import css from '../styles/pages/Franchise.module.css'
 
@@ -23,6 +24,7 @@ export default function Franchise() {
   const [status, setStatus] = useState<FormStatus>('idle')
   const [incomeSource, setIncomeSource] = useState('')
   const [countryIso, setCountryIso] = useState('PH')
+  const [investment, setInvestment] = useState<number | null>(null)
   const [error, setError] = useState('')
   const country = getCountry(countryIso)
 
@@ -31,9 +33,7 @@ export default function Franchise() {
     const form = e.currentTarget
 
     /* Franchise qualification: applications below the minimum can't proceed. */
-    const investmentInput = form.elements.namedItem('estimatedInvestment') as HTMLInputElement
-    const investment = parseInt(investmentInput.value.replace(/\D/g, '') || '0', 10)
-    if (investment < MIN_FRANCHISE_INVESTMENT) {
+    if (investment === null || investment < MIN_FRANCHISE_INVESTMENT) {
       setError(
         `A minimum investment of ${formatPeso(MIN_FRANCHISE_INVESTMENT)} is required to open a Two Wheels Zone franchise.`,
       )
@@ -67,13 +67,33 @@ export default function Franchise() {
     setError('')
     setStatus('sending')
 
-    /* TODO: send to the backend (old site posted to sendFranchiseMessage.php).
-       Simulated for now — the frontend-only phase. */
-    await new Promise((resolve) => setTimeout(resolve, 800))
+    try {
+      await postJson('/franchise.php', {
+        amount: investment,
+        name: nameValue,
+        email: (form.elements.namedItem('email') as HTMLInputElement).value,
+        countryIso,
+        mobile: (form.elements.namedItem('mobile') as HTMLInputElement).value,
+        location: locationValue,
+        income: incomeSource,
+        otherSource:
+          incomeSource === 'other'
+            ? (form.elements.namedItem('otherSource') as HTMLInputElement).value
+            : '',
+        findUs: (form.elements.namedItem('findUs') as HTMLSelectElement).value,
+        message: messageValue,
+        hp: (form.elements.namedItem('hp') as HTMLInputElement).value,
+      })
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Something went wrong. Please try again.')
+      setStatus('idle')
+      return
+    }
 
     setStatus('success')
     setIncomeSource('')
     setCountryIso('PH')
+    setInvestment(null)
     form.reset()
   }
 
@@ -158,6 +178,12 @@ export default function Franchise() {
             )}
 
             <form onSubmit={handleSubmit} className={css.form}>
+              {/* Honeypot: hidden from real users; bots that fill it get silently dropped. */}
+              <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px' }}>
+                <label htmlFor="fr-hp">Leave this field empty</label>
+                <input id="fr-hp" name="hp" type="text" tabIndex={-1} autoComplete="off" />
+              </div>
+
               <div className="field">
                 <label htmlFor="fr-name">
                   Full Name <span className="required">*</span>
@@ -245,6 +271,15 @@ export default function Franchise() {
                 <label htmlFor="fr-investment">
                   Estimated Initial Investment <span className="required">*</span>
                 </label>
+                <div className={css.chips}>
+                  <button
+                    type="button"
+                    className={`${css.chip} ${investment === SUGGESTED_INVESTMENT ? css.chipActive : ''}`}
+                    onClick={() => setInvestment(SUGGESTED_INVESTMENT)}
+                  >
+                    {formatPeso(SUGGESTED_INVESTMENT)} · Franchise package
+                  </button>
+                </div>
                 <div className="input-group">
                   <span>₱</span>
                   <input
@@ -254,23 +289,32 @@ export default function Franchise() {
                     className="input"
                     placeholder="1,300,000.00"
                     inputMode="numeric"
+                    autoComplete="off"
                     required
+                    value={investment !== null ? investment.toLocaleString('en-US') : ''}
+                    onChange={(e) => {
+                      const digits = e.target.value.replace(/\D/g, '').slice(0, 9)
+                      setInvestment(digits ? parseInt(digits, 10) : null)
+                    }}
                   />
                 </div>
                 <p className={css.hint}>
-                  Franchise package: {formatPeso(SUGGESTED_INVESTMENT)} · Minimum to
-                  proceed: {formatPeso(MIN_FRANCHISE_INVESTMENT)}
+                  Tap the package amount or enter your own. Minimum to proceed:{' '}
+                  {formatPeso(MIN_FRANCHISE_INVESTMENT)}.
                 </p>
               </div>
 
               <div className="field">
-                <label htmlFor="fr-income">Source of Income</label>
+                <label htmlFor="fr-income">
+                  Source of Income <span className="required">*</span>
+                </label>
                 <select
                   id="fr-income"
                   name="sourceOfIncome"
                   className="select"
                   value={incomeSource}
                   onChange={(e) => setIncomeSource(e.target.value)}
+                  required
                 >
                   <option value="">Select an option</option>
                   {INCOME_SOURCES.map(({ value, label }) => (

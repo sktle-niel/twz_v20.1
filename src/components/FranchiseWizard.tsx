@@ -8,7 +8,7 @@ import {
   type FormEvent,
   type ReactNode,
 } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { Bike, CheckCircle2, ChevronLeft, X } from 'lucide-react'
 import {
   formatPeso,
@@ -19,6 +19,7 @@ import {
 } from '../data/franchise'
 import { COUNTRIES, getCountry } from '../data/countries'
 import { isMeaningfulText, isValidFullName } from '../lib/validate'
+import { ApiError, postJson } from '../lib/api'
 import css from '../styles/components/FranchiseWizard.module.css'
 
 const STEPS = ['ask', 'amount', 'name', 'contact', 'location', 'income', 'message', 'done'] as const
@@ -48,6 +49,28 @@ const EMPTY: FormData = {
   message: '',
 }
 
+/* The auto-popup shows at most once every 3 days per browser, so repeat
+   visitors can browse in peace. Manual opens (hero button, pill) always work. */
+const AUTO_OPEN_KEY = 'twz_franchise_prompt_at'
+const AUTO_OPEN_COOLDOWN_MS = 3 * 24 * 60 * 60 * 1000
+
+function autoOpenAllowed(): boolean {
+  try {
+    const last = Number(localStorage.getItem(AUTO_OPEN_KEY) ?? 0)
+    return !last || Date.now() - last > AUTO_OPEN_COOLDOWN_MS
+  } catch {
+    return true /* storage blocked (private mode) — behave like a first visit */
+  }
+}
+
+function markAutoOpened(): void {
+  try {
+    localStorage.setItem(AUTO_OPEN_KEY, String(Date.now()))
+  } catch {
+    /* storage blocked — the popup may show again next visit, which is fine */
+  }
+}
+
 /* Lets any page open the wizard (e.g. the home hero's "Franchise Now"). */
 const WizardContext = createContext<() => void>(() => {})
 
@@ -57,6 +80,7 @@ export function useFranchiseWizard() {
 
 export default function FranchiseWizard({ children }: { children: ReactNode }) {
   const routerLocation = useLocation()
+  const navigate = useNavigate()
   const onFranchisePage = routerLocation.pathname === '/franchise'
 
   const [open, setOpen] = useState(false)
@@ -64,13 +88,25 @@ export default function FranchiseWizard({ children }: { children: ReactNode }) {
   const [step, setStep] = useState<Step>('ask')
   const [data, setData] = useState<FormData>(EMPTY)
   const [sending, setSending] = useState(false)
+  const [submitError, setSubmitError] = useState('')
   const autoOpened = useRef(false)
 
-  /* Auto-appear once per visit (skipped on the franchise page itself). */
+  /* Auto-appear once per visit (skipped on the franchise page itself), and at
+     most once every 3 days per browser — repeat visitors get the quiet pill
+     instead. The ref is only marked when the timer actually fires — marking it
+     at schedule time made StrictMode's double effect-run cancel the open. */
   useEffect(() => {
     if (onFranchisePage || autoOpened.current) return
-    autoOpened.current = true
-    const timer = setTimeout(() => setOpen(true), 1600)
+    if (!autoOpenAllowed()) {
+      autoOpened.current = true
+      setShowPill(true)
+      return
+    }
+    const timer = setTimeout(() => {
+      autoOpened.current = true
+      markAutoOpened()
+      setOpen(true)
+    }, 1600)
     return () => clearTimeout(timer)
   }, [onFranchisePage])
 
@@ -89,6 +125,9 @@ export default function FranchiseWizard({ children }: { children: ReactNode }) {
     return () => {
       document.body.style.overflow = ''
       document.removeEventListener('keydown', onKey)
+      /* The lock changes the page's scrollable range; nudge scroll-linked
+         animations (parallax) to re-measure now that it's restored. */
+      window.dispatchEvent(new Event('resize'))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
@@ -103,6 +142,7 @@ export default function FranchiseWizard({ children }: { children: ReactNode }) {
     setStep('ask')
     setData(EMPTY)
     setSending(false)
+    setSubmitError('')
   }
 
   const stepIndex = STEPS.indexOf(step)
@@ -154,8 +194,27 @@ export default function FranchiseWizard({ children }: { children: ReactNode }) {
 
     if (step === 'message') {
       setSending(true)
-      /* TODO: post the application to the backend once it's built. */
-      await new Promise((resolve) => setTimeout(resolve, 900))
+      setSubmitError('')
+      try {
+        await postJson('/franchise.php', {
+          amount: data.amount,
+          name: data.name,
+          email: data.email,
+          countryIso: data.countryIso,
+          mobile: data.mobile,
+          location: data.location,
+          income: data.income,
+          otherSource: data.income === 'other' ? data.otherSource : '',
+          message: data.message,
+          hp: '',
+        })
+      } catch (err) {
+        setSubmitError(
+          err instanceof ApiError ? err.message : 'Something went wrong. Please try again.',
+        )
+        setSending(false)
+        return
+      }
       setSending(false)
       setStep('done')
       return
@@ -218,9 +277,12 @@ export default function FranchiseWizard({ children }: { children: ReactNode }) {
                         onClick={() => setStep('amount')}
                       />
                       <OptionCard
-                        label="Not now"
-                        description="Keep browsing. You can reopen this anytime."
-                        onClick={dismiss}
+                        label="Check Status"
+                        description="Already applied? Track your application with the reference from our email."
+                        onClick={() => {
+                          dismiss()
+                          navigate('/status')
+                        }}
                       />
                     </div>
                   </>
@@ -452,6 +514,11 @@ export default function FranchiseWizard({ children }: { children: ReactNode }) {
                           <p className={css.errorText} role="alert">
                             Some of that text doesn't look readable. Please rephrase it,
                             or leave the message blank.
+                          </p>
+                        )}
+                        {submitError && (
+                          <p className={css.errorText} role="alert">
+                            {submitError}
                           </p>
                         )}
                       </div>

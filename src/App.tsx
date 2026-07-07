@@ -7,11 +7,15 @@ import CasaQuality from './pages/CasaQuality'
 import Branches from './pages/Branches'
 import Contact from './pages/Contact'
 import Franchise from './pages/Franchise'
+import CheckStatus from './pages/CheckStatus'
+import Admin from './pages/Admin'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import TermsOfService from './pages/TermsOfService'
 import NotFound from './pages/NotFound'
 
 export const router = createBrowserRouter([
+  /* Admin dashboard lives outside the public Layout (own chrome, no navbar). */
+  { path: '/admin', element: <Admin /> },
   {
     element: <Layout />,
     children: [
@@ -22,6 +26,7 @@ export const router = createBrowserRouter([
       { path: '/branches', element: <Branches /> },
       { path: '/contact', element: <Contact /> },
       { path: '/franchise', element: <Franchise /> },
+      { path: '/status', element: <CheckStatus /> },
       { path: '/privacy-policy', element: <PrivacyPolicy /> },
       { path: '/terms-of-service', element: <TermsOfService /> },
 

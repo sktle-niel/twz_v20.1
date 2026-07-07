@@ -15,6 +15,7 @@ const EXPLORE = [
 const BUSINESS = [
   { to: '/franchise', label: 'Franchise Us' },
   { to: '/contact', label: 'Contact Us' },
+  { to: '/status', label: 'Check Status' },
 ]
 
 const LEGAL = [

@@ -1,0 +1,702 @@
+/* ── Shared chrome ── */
+
+.wordmark {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  letter-spacing: 0.05em;
+  color: var(--c-ink);
+}
+
+.wordmark span {
+  color: var(--c-green-deep);
+}
+
+.wordmark em {
+  font-style: normal;
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+  margin-left: 0.45rem;
+}
+
+/* ── Login ── */
+
+.loginScreen {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: var(--c-paper-2);
+  padding: 1.5rem;
+}
+
+.loginCard {
+  width: min(400px, 100%);
+  padding: 2.2rem 2rem;
+  display: grid;
+  gap: 1.05rem;
+}
+
+.loginTitle {
+  font-size: 1.9rem;
+}
+
+.loginCard button {
+  justify-self: start;
+}
+
+.backLink {
+  font-size: 0.85rem;
+  color: var(--c-muted);
+  text-decoration: none;
+}
+
+.backLink:hover {
+  color: var(--c-text);
+  text-decoration: underline;
+}
+
+/* ── Shell ── */
+
+.shell {
+  min-height: 100vh;
+  background: var(--c-paper-2);
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem clamp(1rem, 4vw, 2.2rem);
+  background: rgb(255 255 255 / 0.88);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--c-line);
+}
+
+.logout {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 0;
+  background: none;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--c-muted);
+  cursor: pointer;
+}
+
+.logout:hover {
+  color: var(--c-text);
+}
+
+/* ── Pill nav (Franchise / Messages) ── */
+
+.pillNav {
+  position: sticky;
+  top: 3.6rem;
+  z-index: 19;
+  display: flex;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.8rem 1rem;
+}
+
+.pill,
+.pillActive {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid var(--c-line);
+  border-radius: 999px;
+  padding: 0.5rem 1.15rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: rgb(255 255 255 / 0.65);
+  color: var(--c-muted);
+  backdrop-filter: blur(6px);
+  transition: 150ms;
+}
+
+.pill:hover {
+  color: var(--c-text);
+  background: #fff;
+}
+
+.pillActive {
+  background: var(--c-ink);
+  border-color: var(--c-ink);
+  color: var(--c-yellow);
+  box-shadow: var(--shadow-1);
+}
+
+/* ── Main column ── */
+
+.main {
+  max-width: 780px;
+  margin-inline: auto;
+  padding: 0.6rem 1rem 4rem;
+}
+
+.pageTitle {
+  font-size: clamp(1.8rem, 3vw, 2.3rem);
+  margin-bottom: 0.9rem;
+}
+
+.filterBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  margin-bottom: 1.2rem;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+/* ── Date filter dropdowns (Year · Month · Day) ── */
+
+.dateFilters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.dateFilter {
+  position: relative;
+}
+
+.dateBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.42rem 0.9rem;
+  border: 1px solid var(--c-line);
+  border-radius: 999px;
+  background: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--c-text);
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.dateBtn:hover {
+  border-color: var(--c-ink);
+}
+
+.dateBtn svg:first-child {
+  color: var(--c-green-deep);
+}
+
+.dateBtnActive {
+  border-color: var(--c-green-deep);
+  box-shadow: 0 0 0 3px rgb(31 142 22 / 0.12);
+}
+
+.datePanel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 25;
+  min-width: 240px;
+  max-height: 340px;
+  overflow-y: auto;
+  padding: 0.4rem;
+  background: #fff;
+  border: 1px solid var(--c-line);
+  border-radius: 12px;
+  box-shadow: var(--shadow-2);
+  animation: panel-in 0.16s ease both;
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+.dateOpt,
+.dateOptActive {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  width: 100%;
+  border: 0;
+  border-radius: 8px;
+  padding: 0.45rem 0.65rem;
+  background: none;
+  font-size: 0.86rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+}
+
+.dateOpt:hover {
+  background: var(--c-paper-2);
+}
+
+.dateOptActive {
+  background: var(--c-green-deep);
+  color: #fff;
+}
+
+.dateOptActive .dateCount {
+  background: rgb(255 255 255 / 0.24);
+  color: #fff;
+}
+
+.dateCount {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--c-muted);
+  background: var(--c-paper-2);
+  border-radius: 999px;
+  padding: 0.05rem 0.5rem;
+}
+
+.chip,
+.chipActive {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid var(--c-line);
+  border-radius: 999px;
+  padding: 0.3rem 0.8rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: #fff;
+  color: var(--c-muted);
+}
+
+.chipActive {
+  background: var(--c-green-deep);
+  border-color: var(--c-green-deep);
+  color: #fff;
+}
+
+.chipCount {
+  font-size: 0.72rem;
+  background: rgb(19 20 16 / 0.08);
+  border-radius: 999px;
+  padding: 0 0.45rem;
+}
+
+.chipActive .chipCount {
+  background: rgb(255 255 255 / 0.22);
+}
+
+.empty {
+  color: var(--c-muted);
+  padding: 2.5rem 0;
+  text-align: center;
+}
+
+/* ── Loading ── */
+
+.listWrap {
+  position: relative;
+}
+
+.listDim {
+  opacity: 0.45;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.listOverlay,
+.loadingWrap {
+  display: grid;
+  place-items: center;
+}
+
+.listOverlay {
+  position: absolute;
+  inset: 0;
+}
+
+.loadingWrap {
+  padding: 3.5rem 0;
+}
+
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--c-line);
+  border-top-color: var(--c-green-deep);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Inquiry cards ── */
+
+.list {
+  display: grid;
+  gap: 0.8rem;
+}
+
+/* Green mark: inquiry the admin hasn't opened yet. */
+.newDot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-right: 0.5rem;
+  border-radius: 50%;
+  background: var(--c-green);
+  box-shadow: 0 0 0 3px rgb(65 206 52 / 0.22);
+  vertical-align: 2px;
+}
+
+.item {
+  padding: 0;
+  overflow: hidden;
+}
+
+.itemHead {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  width: 100%;
+  border: 0;
+  background: none;
+  padding: 1rem 1.2rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.itemWho {
+  flex: 1;
+  min-width: 0;
+}
+
+.itemWho strong {
+  display: block;
+  font-size: 1rem;
+}
+
+.itemMeta {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--c-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.caret,
+.caretOpen {
+  flex-shrink: 0;
+  color: var(--c-muted);
+  transition: transform 150ms;
+}
+
+.caretOpen {
+  transform: rotate(180deg);
+}
+
+.itemAppointment {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0 1.2rem 0.8rem;
+  padding: 0.45rem 0.7rem;
+  border-radius: var(--radius-sm);
+  background: #e3f6e0;
+  color: var(--c-green-deep);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.itemAppointment em {
+  font-style: normal;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+}
+
+.itemAppointment span {
+  font-weight: 500;
+  color: var(--c-text);
+}
+
+.itemBody {
+  border-top: 1px solid var(--c-line);
+  padding: 1.1rem 1.2rem 1.3rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.7rem 1.2rem;
+  margin: 0;
+}
+
+.details dt {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+}
+
+.details dd {
+  margin: 0.1rem 0 0;
+  font-size: 0.92rem;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.details dd a {
+  color: var(--c-green-deep);
+  text-decoration: none;
+}
+
+.details dd a:hover {
+  text-decoration: underline;
+}
+
+.message {
+  background: var(--c-paper-2);
+  border-radius: var(--radius-sm);
+  padding: 0.8rem 0.95rem;
+  font-size: 0.9rem;
+  white-space: pre-wrap;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.closeBtn {
+  color: var(--c-red);
+}
+
+/* ── Badges (same palette as the public status page) ── */
+
+.badge {
+  flex-shrink: 0;
+  border-radius: 999px;
+  padding: 0.22rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge_new {
+  background: var(--c-paper-2);
+  color: var(--c-text);
+  border: 1px solid var(--c-line);
+}
+
+.badge_contacted {
+  background: #fdf7d4;
+  color: #7a6a06;
+}
+
+.badge_scheduled {
+  background: #e3f6e0;
+  color: var(--c-green-deep);
+}
+
+.badge_completed {
+  background: var(--c-green-deep);
+  color: #fff;
+}
+
+.badge_closed {
+  background: var(--c-ink);
+  color: var(--c-text-on-dark);
+}
+
+/* ── Schedule form ── */
+
+.scheduleForm {
+  border: 1px solid var(--c-line);
+  border-left: 4px solid var(--c-yellow);
+  border-radius: var(--radius-sm);
+  background: var(--c-paper-2);
+  padding: 1rem 1.1rem 1.2rem;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.scheduleTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.scheduleHint {
+  font-size: 0.84rem;
+  color: var(--c-muted);
+  margin-top: -0.5rem;
+}
+
+.abroadToggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.abroadToggle input {
+  width: 1.05rem;
+  height: 1.05rem;
+  accent-color: var(--c-green-deep);
+}
+
+.scheduleRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+}
+
+.tinyHint {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: var(--c-muted);
+  margin-top: 0.25rem;
+}
+
+.previewOk,
+.previewBad {
+  font-size: 0.9rem;
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.8rem;
+}
+
+.previewOk {
+  background: #e3f6e0;
+  color: var(--c-green-deep);
+}
+
+.previewBad {
+  background: #fde7e4;
+  color: var(--c-red);
+}
+
+.scheduleForm button {
+  justify-self: start;
+}
+
+/* ── Timezone picker ── */
+
+.tzPicker {
+  position: relative;
+}
+
+.tzNow {
+  margin-top: 0.3rem;
+  font-size: 0.8rem;
+  color: var(--c-muted);
+}
+
+.tzList {
+  position: absolute;
+  top: calc(100% - 1.3rem);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  max-height: 260px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid var(--c-line);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-2);
+}
+
+.tzGroup {
+  padding: 0.55rem 0.85rem 0.35rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+}
+
+.tzOpt,
+.tzOptActive {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.8rem;
+  width: 100%;
+  border: 0;
+  background: none;
+  padding: 0.5rem 0.85rem;
+  font-size: 0.88rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tzOpt:hover,
+.tzOptActive {
+  background: var(--c-paper-2);
+}
+
+.tzOptActive .tzName {
+  color: var(--c-green-deep);
+  font-weight: 700;
+}
+
+.tzName {
+  overflow-wrap: anywhere;
+}
+
+.tzMeta {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  color: var(--c-muted);
+  white-space: nowrap;
+}
+
+/* ── Pager ── */
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1.4rem;
+  font-size: 0.88rem;
+  color: var(--c-muted);
+}
+
+@media (max-width: 520px) {
+  .scheduleRow {
+    grid-template-columns: 1fr;
+  }
+
+  .itemHead {
+    flex-wrap: wrap;
+  }
+}

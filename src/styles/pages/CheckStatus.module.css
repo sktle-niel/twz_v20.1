@@ -1,0 +1,199 @@
+.wrap {
+  max-width: 640px;
+  display: grid;
+  gap: 1.4rem;
+}
+
+.lookupCard {
+  padding: 1.9rem 1.8rem;
+}
+
+.lookupLabel {
+  display: block;
+  font-weight: 600;
+  font-size: 0.92rem;
+  margin-bottom: 0.5rem;
+}
+
+.lookupRow {
+  display: flex;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.refInput {
+  flex: 1;
+  min-width: 200px;
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hint {
+  margin-top: 0.6rem;
+  font-size: 0.82rem;
+  color: var(--c-muted);
+}
+
+.lookupCard .alert {
+  margin-top: 0.9rem;
+}
+
+/* ── Result ── */
+
+.resultCard {
+  padding: 1.9rem 1.8rem;
+}
+
+.resultHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 1rem;
+}
+
+.resultKicker {
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+}
+
+.resultTitle {
+  font-size: 1.55rem;
+  margin-top: 0.15rem;
+}
+
+.badge {
+  flex-shrink: 0;
+  border-radius: 999px;
+  padding: 0.28rem 0.85rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge_new {
+  background: var(--c-paper-2);
+  color: var(--c-text);
+  border: 1px solid var(--c-line);
+}
+
+.badge_contacted {
+  background: #fdf7d4;
+  color: #7a6a06;
+}
+
+.badge_scheduled {
+  background: #e3f6e0;
+  color: var(--c-green-deep);
+}
+
+.badge_completed {
+  background: var(--c-green-deep);
+  color: #fff;
+}
+
+.badge_closed {
+  background: var(--c-ink);
+  color: var(--c-text-on-dark);
+}
+
+.blurb {
+  margin-top: 0.8rem;
+  color: var(--c-muted);
+  font-size: 0.95rem;
+}
+
+/* ── Timeline trail ── */
+
+.trail {
+  margin-top: 1.3rem;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  border-top: 1px solid var(--c-line);
+  padding-top: 1.2rem;
+}
+
+.trail li {
+  display: flex;
+  align-items: center;
+  gap: 0.42rem;
+  font-size: 0.83rem;
+  font-weight: 600;
+}
+
+.trailDone {
+  color: var(--c-green-deep);
+}
+
+.trailPending {
+  color: var(--c-muted);
+  opacity: 0.75;
+}
+
+/* ── Appointment ── */
+
+.appointment {
+  margin-top: 1.3rem;
+  border: 1px solid var(--c-line);
+  border-left: 4px solid var(--c-yellow);
+  border-radius: var(--radius-sm);
+  padding: 1rem 1.1rem;
+  background: var(--c-paper-2);
+}
+
+.appointmentKicker {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+}
+
+.appointmentTime {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.45rem;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.appointmentTime svg {
+  color: var(--c-green-deep);
+  flex-shrink: 0;
+}
+
+.tz {
+  font-weight: 500;
+  font-size: 0.85rem;
+  color: var(--c-muted);
+}
+
+.phTime {
+  margin-top: 0.25rem;
+  font-size: 0.86rem;
+  color: var(--c-muted);
+  padding-left: 1.65rem;
+}
+
+.submitted {
+  margin-top: 1.1rem;
+  font-size: 0.8rem;
+  color: var(--c-muted);
+}
+
+@media (max-width: 560px) {
+  .trail {
+    grid-template-columns: 1fr 1fr;
+    row-gap: 0.7rem;
+  }
+
+  .resultHead {
+    flex-direction: column-reverse;
+  }
+}

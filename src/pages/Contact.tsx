@@ -6,6 +6,7 @@ import { MAIN_MAP_EMBED } from '../data/branches'
 import { SITE } from '../data/site'
 import { COUNTRIES, getCountry } from '../data/countries'
 import { isMeaningfulText } from '../lib/validate'
+import { ApiError, postJson } from '../lib/api'
 import heroImg from '../assets/hero/hero-2.jpg'
 import css from '../styles/pages/Contact.module.css'
 
@@ -42,9 +43,21 @@ export default function Contact() {
     setError('')
     setStatus('sending')
 
-    /* TODO: send to the backend (old site posted to sendMessage.php).
-       Simulated for now — the frontend-only phase. */
-    await new Promise((resolve) => setTimeout(resolve, 800))
+    try {
+      await postJson('/contact.php', {
+        name: nameValue,
+        country: countryIso,
+        mobile: (form.elements.namedItem('mobile') as HTMLInputElement).value,
+        email: (form.elements.namedItem('email') as HTMLInputElement).value,
+        subject: subjectValue,
+        message: messageValue,
+        hp: (form.elements.namedItem('hp') as HTMLInputElement).value,
+      })
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Something went wrong. Please try again.')
+      setStatus('idle')
+      return
+    }
 
     setStatus('success')
     setCountryIso('PH')
@@ -79,6 +92,12 @@ export default function Contact() {
             )}
 
             <form onSubmit={handleSubmit} className={css.form}>
+              {/* Honeypot: hidden from real users; bots that fill it get silently dropped. */}
+              <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px' }}>
+                <label htmlFor="hp">Leave this field empty</label>
+                <input id="hp" name="hp" type="text" tabIndex={-1} autoComplete="off" />
+              </div>
+
               <div className="field">
                 <label htmlFor="name">
                   Name <span className="required">*</span>

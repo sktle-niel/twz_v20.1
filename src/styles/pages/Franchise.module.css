@@ -148,6 +148,36 @@
   color: var(--c-muted);
 }
 
+/* One-tap preset for the franchise package amount (mirrors the wizard). */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.45rem;
+}
+
+.chip {
+  padding: 0.38rem 0.85rem;
+  border: 1.5px solid var(--c-line);
+  border-radius: 999px;
+  background: var(--c-paper);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--c-text);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+}
+
+.chip:hover {
+  border-color: var(--c-ink);
+}
+
+.chipActive {
+  border-color: var(--c-ink);
+  background: var(--c-ink);
+  color: var(--c-yellow);
+}
+
 .formTitle {
   font-size: 1.7rem;
 }
