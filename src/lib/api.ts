@@ -72,6 +72,9 @@ export interface Appointment {
   client_tz: string
   ph_time: string
   utc: string
+  /* Present on the public status payload. */
+  meeting_type?: 'online' | 'inperson' | null
+  meeting_link?: string | null
 }
 
 export type InquiryStatus = 'new' | 'contacted' | 'scheduled' | 'completed' | 'closed'

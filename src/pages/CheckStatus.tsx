@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { CalendarClock, CheckCircle2, CircleDashed, PhoneCall, Search } from 'lucide-react'
+import { CalendarClock, CheckCircle2, CircleDashed, MapPin, PhoneCall, Search, Video } from 'lucide-react'
 import PageHero from '../components/PageHero'
 import { usePageTitle } from '../hooks/usePageTitle'
 import { getJson, type Appointment, type InquiryStatus } from '../lib/api'
@@ -38,6 +38,16 @@ const STATUS_COPY: Record<InquiryStatus, { label: string; blurb: string }> = {
     label: 'Closed',
     blurb: 'This inquiry has been closed. Feel free to reach out again anytime.',
   },
+}
+
+/* "https://meet.google.com/abc-defg-hij" -> "abc-defg-hij". */
+function meetCode(link: string): string | null {
+  try {
+    const path = new URL(link).pathname.replace(/^\/|\/$/g, '')
+    return /^[a-z]{3,4}-[a-z]{4}-[a-z]{3,4}$/i.test(path) ? path : null
+  } catch {
+    return null
+  }
 }
 
 /* Timeline milestones (closed is shown via the badge, not the trail). */
@@ -172,6 +182,31 @@ export default function CheckStatus() {
                   {result.appointment.client_tz !== 'Asia/Manila' && (
                     <p className={css.phTime}>
                       Philippine time: {result.appointment.ph_time}
+                    </p>
+                  )}
+                  {result.appointment.meeting_type === 'online' &&
+                    result.appointment.meeting_link && (
+                      <>
+                        <a
+                          className={`btn btn--solid btn--sm ${css.joinBtn}`}
+                          href={result.appointment.meeting_link}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          <Video size={16} aria-hidden /> Join Google Meet
+                        </a>
+                        {meetCode(result.appointment.meeting_link) && (
+                          <p className={css.meetCode}>
+                            or enter this code in the Meet app:{' '}
+                            <code>{meetCode(result.appointment.meeting_link)}</code>
+                          </p>
+                        )}
+                      </>
+                    )}
+                  {result.appointment.meeting_type === 'inperson' && (
+                    <p className={css.meetPlace}>
+                      <MapPin size={14} aria-hidden /> Face-to-face at our branch: 329 Malvar
+                      Road, Puerto Princesa City
                     </p>
                   )}
                 </div>

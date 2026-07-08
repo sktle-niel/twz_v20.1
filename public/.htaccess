@@ -1,0 +1,43 @@
+# Apache config for the built SPA (Hostinger shared hosting).
+# Copied into dist/ by Vite's public/ passthrough, so it ships with every build.
+
+# Force HTTPS and the non-www host. One canonical origin means the API's
+# ALLOWED_ORIGINS only ever has to match a single value.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP_HOST} !^localhost [NC]
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+  RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+  RewriteRule ^ https://%1%{REQUEST_URI} [R=301,L]
+</IfModule>
+
+# React Router uses browser history (no #hashes), so a hard refresh or a
+# direct link to e.g. /franchise must still resolve — Apache would otherwise
+# 404 because no such file exists on disk. Serve index.html for anything that
+# isn't a real file/directory, and let the client-side router take it from
+# there.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+  RewriteRule ^ index.html [L]
+</IfModule>
+
+# Never serve dotfiles.
+<FilesMatch "^\.">
+  Require all denied
+</FilesMatch>
+
+# Long-cache hashed assets; never cache the HTML shell.
+<IfModule mod_headers.c>
+  <FilesMatch "\.(js|css|woff2?|png|jpe?g|svg|webp|gif|ico)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+</IfModule>

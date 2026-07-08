@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# Local env (keep .env.example tracked)
+.env
+.env.*
+!.env.example
+
 # Claude Code local session permissions
 .claude/settings.local.json
 

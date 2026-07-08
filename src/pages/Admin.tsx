@@ -13,6 +13,8 @@ import {
   Mail,
   MapPin,
   Phone,
+  Settings,
+  Video,
   XCircle,
 } from 'lucide-react'
 import { usePageTitle } from '../hooks/usePageTitle'
@@ -54,6 +56,8 @@ interface Inquiry {
   status: InquiryStatus
   viewed: number
   appointment: Appointment | null
+  meeting_type: 'online' | 'inperson' | null
+  meeting_link: string | null
   message: string | null
   created_at: string
   /* franchise */
@@ -69,6 +73,14 @@ interface Inquiry {
 interface DataDate {
   date: string /* YYYY-MM-DD */
   count: number
+}
+
+interface Slot {
+  time: string /* HH:MM, client-local */
+  client_label: string /* "6:00 AM" */
+  ph_label: string /* "Wed · 10:00 AM" */
+  taken: boolean
+  past: boolean
 }
 
 interface ListResponse {
@@ -94,6 +106,41 @@ function dateLabel(d: string): string {
 }
 
 const TOKEN_KEY = 'twz_admin_token'
+
+/* ── UI-state persistence (per browser tab, survives reloads) ── */
+const SS = {
+  get(key: string, fallback: string): string {
+    try {
+      return sessionStorage.getItem(key) ?? fallback
+    } catch {
+      return fallback
+    }
+  },
+  set(key: string, value: string): void {
+    try {
+      sessionStorage.setItem(key, value)
+    } catch {
+      /* storage blocked — the UI just won't survive a reload */
+    }
+  },
+}
+
+const OPEN_KEY = 'twz_admin_open'
+
+function openCards(): Set<string> {
+  try {
+    return new Set<string>(JSON.parse(sessionStorage.getItem(OPEN_KEY) ?? '[]'))
+  } catch {
+    return new Set()
+  }
+}
+
+function rememberOpen(cardKey: string, open: boolean): void {
+  const s = openCards()
+  if (open) s.add(cardKey)
+  else s.delete(cardKey)
+  SS.set(OPEN_KEY, JSON.stringify([...s]))
+}
 const STATUSES: Array<InquiryStatus | 'all'> = [
   'all',
   'new',
@@ -118,6 +165,16 @@ const INCOME_LABEL: Record<string, string> = {
 }
 
 const peso = (n: number) => `₱${n.toLocaleString('en-US')}`
+
+/* "https://meet.google.com/abc-defg-hij" -> "abc-defg-hij". */
+function meetCode(link: string): string | null {
+  try {
+    const path = new URL(link).pathname.replace(/^\/|\/$/g, '')
+    return /^[a-z]{3,4}-[a-z]{4}-[a-z]{3,4}$/i.test(path) ? path : null
+  } catch {
+    return null
+  }
+}
 const hour12 = (h: number) =>
   h === 0 ? '12 AM' : h < 12 ? `${h} AM` : h === 12 ? '12 PM' : `${h - 12} PM`
 
@@ -127,6 +184,17 @@ export default function Admin() {
   usePageTitle('Admin')
   const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_KEY))
   const [checked, setChecked] = useState(false)
+
+  /* Keep the dashboard out of search engines. */
+  useEffect(() => {
+    const meta = document.createElement('meta')
+    meta.name = 'robots'
+    meta.content = 'noindex, nofollow'
+    document.head.appendChild(meta)
+    return () => {
+      document.head.removeChild(meta)
+    }
+  }, [])
 
   /* Validate a remembered token once on mount. */
   useEffect(() => {
@@ -245,14 +313,32 @@ function Dashboard({
   onLogout: () => void
   onExpired: () => void
 }) {
-  const [kind, setKind] = useState<Kind>('franchise')
-  const [status, setStatus] = useState<InquiryStatus | 'all'>('all')
-  const [year, setYear] = useState('')  // YYYY ('' until the data tells us the latest)
-  const [month, setMonth] = useState('') // 'MM', '' = whole year
-  const [day, setDay] = useState('')     // '1'-'31', '' = whole month
-  const [page, setPage] = useState(1)
+  /* Every filter survives a reload (per tab): you come back to the same
+     view, same filters, same page. */
+  const [view, setView] = useState<Kind | 'account'>(() => {
+    const v = SS.get('twz_admin_view', 'franchise')
+    return v === 'contact' || v === 'account' ? v : 'franchise'
+  })
+  const kind: Kind = view === 'account' ? 'franchise' : view
+  const [status, setStatus] = useState<InquiryStatus | 'all'>(() => {
+    const s = SS.get('twz_admin_status', 'all')
+    return (STATUSES as string[]).includes(s) ? (s as InquiryStatus | 'all') : 'all'
+  })
+  const [year, setYear] = useState(() => SS.get('twz_admin_year', ''))
+  const [month, setMonth] = useState(() => SS.get('twz_admin_month', ''))
+  const [day, setDay] = useState(() => SS.get('twz_admin_day', ''))
+  const [page, setPage] = useState(() => Math.max(1, Number(SS.get('twz_admin_page', '1')) || 1))
   const [data, setData] = useState<ListResponse | null>(null)
   const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    SS.set('twz_admin_view', view)
+    SS.set('twz_admin_status', status)
+    SS.set('twz_admin_year', year)
+    SS.set('twz_admin_month', month)
+    SS.set('twz_admin_day', day)
+    SS.set('twz_admin_page', String(page))
+  }, [view, status, year, month, day, page])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -306,13 +392,15 @@ function Dashboard({
     if (!year && latestYear) setYear(latestYear)
   }, [year, latestYear])
 
-  function switchKind(k: Kind) {
-    setKind(k)
-    setStatus('all')
-    setYear('')
-    setMonth('')
-    setDay('')
-    setPage(1)
+  function switchView(v: Kind | 'account') {
+    setView(v)
+    if (v !== 'account') {
+      setStatus('all')
+      setYear('')
+      setMonth('')
+      setDay('')
+      setPage(1)
+    }
   }
 
   function patchItem(id: number, patch: Partial<Inquiry>, reload = true) {
@@ -333,23 +421,36 @@ function Dashboard({
         </button>
       </header>
 
-      <nav className={css.pillNav} aria-label="Inquiry type">
+      <nav className={css.pillNav} aria-label="Dashboard sections">
         <button
           type="button"
-          className={kind === 'franchise' ? css.pillActive : css.pill}
-          onClick={() => switchKind('franchise')}
+          className={view === 'franchise' ? css.pillActive : css.pill}
+          onClick={() => switchView('franchise')}
         >
           <Bike size={16} aria-hidden /> Franchise
         </button>
         <button
           type="button"
-          className={kind === 'contact' ? css.pillActive : css.pill}
-          onClick={() => switchKind('contact')}
+          className={view === 'contact' ? css.pillActive : css.pill}
+          onClick={() => switchView('contact')}
         >
           <Mail size={16} aria-hidden /> Messages
         </button>
+        <button
+          type="button"
+          className={view === 'account' ? css.pillActive : css.pill}
+          onClick={() => switchView('account')}
+        >
+          <Settings size={16} aria-hidden /> Account
+        </button>
       </nav>
 
+      {view === 'account' ? (
+        <main className={css.main}>
+          <h1 className={css.pageTitle}>Account</h1>
+          <AccountView token={token} onExpired={onExpired} />
+        </main>
+      ) : (
       <main className={css.main}>
         <h1 className={css.pageTitle}>
           {kind === 'franchise' ? 'Franchise Applications' : 'Contact Messages'}
@@ -480,7 +581,153 @@ function Dashboard({
           </div>
         )}
       </main>
+      )}
     </div>
+  )
+}
+
+/* ═══════════════════════════ Account settings ═══════════════════════════ */
+
+function AccountView({ token, onExpired }: { token: string; onExpired: () => void }) {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirm, setConfirm] = useState('')
+  const [current, setCurrent] = useState('')
+  const [loaded, setLoaded] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [message, setMessage] = useState('')
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    getJson<{ ok: boolean; email: string }>('/session.php', token)
+      .then((r) => {
+        setEmail(r.email)
+        setLoaded(true)
+      })
+      .catch((err) => {
+        if (err instanceof ApiError && err.status === 401) onExpired()
+      })
+  }, [token, onExpired])
+
+  async function submit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setMessage('')
+    if (password && password !== confirm) {
+      setError('The new passwords do not match.')
+      return
+    }
+    setError('')
+    setBusy(true)
+    try {
+      const res = await postJson<{ ok: boolean; email: string; password_changed: boolean }>(
+        '/admin.php',
+        { action: 'update_account', email, password, current_password: current },
+        token,
+      )
+      setEmail(res.email)
+      setPassword('')
+      setConfirm('')
+      setCurrent('')
+      setMessage(
+        res.password_changed
+          ? 'Saved! Your password has been changed and every other signed-in device was logged out.'
+          : 'Saved! Inquiry notifications and reminders now go to ' + res.email + '.',
+      )
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) return onExpired()
+      setError(err instanceof ApiError ? err.message : 'Something went wrong. Please try again.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (!loaded) {
+    return (
+      <div className={css.loadingWrap}>
+        <span className={css.spinner} role="status" aria-label="Loading" />
+      </div>
+    )
+  }
+
+  return (
+    <form className={`card ${css.accountCard}`} onSubmit={submit}>
+      {message && (
+        <p className="alert alert--success" role="status">
+          {message}
+        </p>
+      )}
+      {error && (
+        <p className="alert alert--error" role="alert">
+          {error}
+        </p>
+      )}
+
+      <div className="field">
+        <label htmlFor="acc-email">Email</label>
+        <input
+          id="acc-email"
+          className="input"
+          type="email"
+          autoComplete="username"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <p className={css.tinyHint}>
+          Used to sign in here, and every inquiry notification and call reminder is sent to this
+          address.
+        </p>
+      </div>
+
+      <div className="field">
+        <label htmlFor="acc-pass">New password</label>
+        <input
+          id="acc-pass"
+          className="input"
+          type="password"
+          autoComplete="new-password"
+          minLength={8}
+          placeholder="Leave blank to keep the current one"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+      </div>
+
+      {password && (
+        <div className="field">
+          <label htmlFor="acc-confirm">Confirm new password</label>
+          <input
+            id="acc-confirm"
+            className="input"
+            type="password"
+            autoComplete="new-password"
+            required
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value)}
+          />
+        </div>
+      )}
+
+      <div className={css.accountDivider} />
+
+      <div className="field">
+        <label htmlFor="acc-current">Current password</label>
+        <input
+          id="acc-current"
+          className="input"
+          type="password"
+          autoComplete="current-password"
+          required
+          value={current}
+          onChange={(e) => setCurrent(e.target.value)}
+        />
+        <p className={css.tinyHint}>Required to save any change.</p>
+      </div>
+
+      <button type="submit" className="btn btn--solid btn--sm" disabled={busy}>
+        {busy ? 'Saving…' : 'Save Changes'}
+      </button>
+    </form>
   )
 }
 
@@ -501,7 +748,8 @@ function InquiryCard({
   onPatched: (id: number, patch: Partial<Inquiry>, reload?: boolean) => void
   onExpired: () => void
 }) {
-  const [open, setOpen] = useState(false)
+  const cardKey = `${kind}-${item.id}`
+  const [open, setOpen] = useState(() => openCards().has(cardKey))
   const [scheduling, setScheduling] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -535,6 +783,7 @@ function InquiryCard({
         onClick={() => {
           const willOpen = !open
           setOpen(willOpen)
+          rememberOpen(cardKey, willOpen) /* survive reloads */
           /* First open = seen: clear the green new-inquiry mark locally right
              away (no list reload — a refetch could race the POST below). */
           if (willOpen && !item.viewed) {
@@ -569,6 +818,27 @@ function InquiryCard({
           {item.appointment.client_tz !== PH_TZ && (
             <span>
               · client: {item.appointment.client_time} ({item.appointment.client_tz})
+            </span>
+          )}
+          {item.meeting_type === 'online' && item.meeting_link && (
+            <>
+              <a
+                className={css.meetLink}
+                href={item.meeting_link}
+                target="_blank"
+                rel="noreferrer"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Video size={13} aria-hidden /> Google Meet
+              </a>
+              {meetCode(item.meeting_link) && (
+                <code className={css.meetCode}>{meetCode(item.meeting_link)}</code>
+              )}
+            </>
+          )}
+          {item.meeting_type === 'inperson' && (
+            <span className={css.meetBadge}>
+              <MapPin size={13} aria-hidden /> In-person
             </span>
           )}
         </p>
@@ -753,10 +1023,45 @@ function ScheduleForm({
   const [tz, setTz] = useState(item.country !== 'PH' ? defaultTz : PH_TZ)
   const [date, setDate] = useState('')
   const [time, setTime] = useState('')
+  const [meetingType, setMeetingType] = useState<'online' | 'inperson'>('online')
+  const [meetLink, setMeetLink] = useState('')
+  const [slots, setSlots] = useState<Slot[] | null>(null)
+  const [slotsLoading, setSlotsLoading] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
   const effectiveTz = abroad ? tz : PH_TZ
+  /* An abroad client can only meet online. */
+  const effectiveType = abroad ? 'online' : meetingType
+  const linkOk = /^https:\/\/\S+\.\S+/.test(meetLink.trim())
+
+  /* Fair slots for the picked date: hours that suit BOTH the client's local
+     clock and PH work hours, with already-booked hours flagged. */
+  useEffect(() => {
+    if (!date) {
+      setSlots(null)
+      return
+    }
+    let stale = false
+    setSlotsLoading(true)
+    setTime('')
+    getJson<{ ok: boolean; slots: Slot[] }>(
+      `/admin.php?view=slots&date=${date}&tz=${encodeURIComponent(effectiveTz)}&kind=${kind}&id=${item.id}`,
+      token,
+    )
+      .then((r) => {
+        if (!stale) setSlots(r.slots)
+      })
+      .catch(() => {
+        if (!stale) setSlots([])
+      })
+      .finally(() => {
+        if (!stale) setSlotsLoading(false)
+      })
+    return () => {
+      stale = true
+    }
+  }, [date, effectiveTz, kind, item.id, token])
   const instant = date && time ? zonedToDate(date, time, effectiveTz) : null
   const phPreview = instant ? formatInZone(instant, PH_TZ) : null
   const minutes = instant ? phMinutes(instant) : null
@@ -769,12 +1074,32 @@ function ScheduleForm({
     setBusy(true)
     setError('')
     try {
-      const res = await postJson<{ ok: boolean; status: InquiryStatus; appointment: Appointment }>(
+      const res = await postJson<{
+        ok: boolean
+        status: InquiryStatus
+        appointment: Appointment
+        meeting_type: 'online' | 'inperson'
+        meeting_link: string | null
+      }>(
         '/admin.php',
-        { action: 'schedule', kind, id: item.id, date, time, tz: effectiveTz },
+        {
+          action: 'schedule',
+          kind,
+          id: item.id,
+          date,
+          time,
+          tz: effectiveTz,
+          meeting_type: effectiveType,
+          meeting_link: effectiveType === 'online' ? meetLink.trim() : '',
+        },
         token,
       )
-      onDone({ status: res.status, appointment: res.appointment })
+      onDone({
+        status: res.status,
+        appointment: res.appointment,
+        meeting_type: res.meeting_type,
+        meeting_link: res.meeting_link,
+      })
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) return onExpired()
       setError(err instanceof ApiError ? err.message : 'Something went wrong.')
@@ -788,9 +1113,9 @@ function ScheduleForm({
         <CalendarClock size={15} aria-hidden /> Schedule the call
       </p>
       <p className={css.scheduleHint}>
-        Enter the date and time <strong>the client asked for, in their own local time</strong>.
-        We'll show you the Philippine time and keep it inside work hours (
-        {hour12(workHours.start)}–{hour12(workHours.end)} PH).
+        Pick the client's date and we'll suggest hours that are <strong>daytime for both
+        sides</strong>: 6 AM–8 PM on the client's clock and {hour12(workHours.start)}–
+        {hour12(workHours.end)} here. Hours already booked by another client are blocked.
       </p>
 
       <label className={css.abroadToggle}>
@@ -805,6 +1130,51 @@ function ScheduleForm({
         Client is abroad (OFW / out of the country)
       </label>
 
+      <div className="field">
+        <label>Meeting type</label>
+        <div className={css.meetTypeRow}>
+          <button
+            type="button"
+            className={effectiveType === 'online' ? css.meetTypeActive : css.meetType}
+            onClick={() => setMeetingType('online')}
+          >
+            <Video size={15} aria-hidden /> Online · Google Meet
+          </button>
+          <button
+            type="button"
+            disabled={abroad}
+            className={effectiveType === 'inperson' ? css.meetTypeActive : css.meetType}
+            onClick={() => setMeetingType('inperson')}
+          >
+            <MapPin size={15} aria-hidden /> In-person · branch
+          </button>
+        </div>
+        {abroad && (
+          <p className={css.tinyHint}>Abroad clients can only meet online.</p>
+        )}
+      </div>
+
+      {effectiveType === 'online' && (
+        <div className="field">
+          <label htmlFor={`meet-${item.id}`}>Google Meet link</label>
+          <input
+            id={`meet-${item.id}`}
+            className="input"
+            type="url"
+            required
+            placeholder="https://meet.google.com/xxx-xxxx-xxx"
+            autoComplete="off"
+            spellCheck={false}
+            value={meetLink}
+            onChange={(e) => setMeetLink(e.target.value)}
+          />
+          <p className={css.tinyHint}>
+            Create it at meet.google.com, paste it here — the client gets a one-click "Join
+            Google Meet" button in every email and on their status page.
+          </p>
+        </div>
+      )}
+
       {abroad && (
         <div className="field">
           <label htmlFor={`tz-${item.id}`}>Client's timezone</label>
@@ -816,30 +1186,60 @@ function ScheduleForm({
         </div>
       )}
 
-      <div className={css.scheduleRow}>
-        <div className="field">
-          <label htmlFor={`date-${item.id}`}>Date (client's)</label>
-          <input
-            id={`date-${item.id}`}
-            className="input"
-            type="date"
-            required
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-          />
-        </div>
-        <div className="field">
-          <label htmlFor={`time-${item.id}`}>Time (client's)</label>
-          <input
-            id={`time-${item.id}`}
-            className="input"
-            type="time"
-            required
-            value={time}
-            onChange={(e) => setTime(e.target.value)}
-          />
-        </div>
+      <div className="field">
+        <label htmlFor={`date-${item.id}`}>Date (client's)</label>
+        <input
+          id={`date-${item.id}`}
+          className="input"
+          type="date"
+          required
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+        />
       </div>
+
+      {date && (
+        <div className="field">
+          <label>
+            Time — fair for both sides
+            {effectiveTz !== PH_TZ && <span className={css.tinyHint}>Shown in the client's time; PH equivalent below each slot.</span>}
+          </label>
+          {slotsLoading ? (
+            <div className={css.slotLoading}>
+              <span className={css.spinner} role="status" aria-label="Loading slots" />
+            </div>
+          ) : !slots || slots.length === 0 ? (
+            <p className={css.tinyHint}>
+              No time on this date works for both their clock and PH work hours. Try another
+              date.
+            </p>
+          ) : (
+            <div className={css.slotGrid} role="listbox" aria-label="Available time slots">
+              {slots.map((s) => {
+                const disabled = s.taken || s.past
+                return (
+                  <button
+                    key={s.time}
+                    type="button"
+                    role="option"
+                    aria-selected={time === s.time}
+                    disabled={disabled}
+                    className={
+                      time === s.time ? css.slotActive : disabled ? css.slotTaken : css.slot
+                    }
+                    onClick={() => setTime(s.time)}
+                  >
+                    <span className={css.slotTime}>{s.client_label}</span>
+                    <span className={css.slotPh}>
+                      {s.taken ? 'Booked' : s.past ? 'Past' : effectiveTz !== PH_TZ ? `PH ${s.ph_label}` : s.ph_label}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       {instant && (
         <p className={insideHours && inFuture ? css.previewOk : css.previewBad}>
@@ -870,7 +1270,9 @@ function ScheduleForm({
       <button
         type="submit"
         className="btn btn--solid btn--sm"
-        disabled={busy || !instant || !insideHours || !inFuture}
+        disabled={
+          busy || !instant || !insideHours || !inFuture || (effectiveType === 'online' && !linkOk)
+        }
       >
         {busy ? 'Saving…' : 'Save & email the client'}
       </button>

@@ -181,6 +181,38 @@
   padding-left: 1.65rem;
 }
 
+.joinBtn {
+  margin-top: 0.8rem;
+}
+
+.meetCode {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--c-muted);
+}
+
+.meetCode code {
+  display: inline-block;
+  margin-left: 0.3rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  background: var(--c-paper-2);
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--c-ink);
+}
+
+.meetPlace {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--c-green-deep);
+}
+
 .submitted {
   margin-top: 1.1rem;
   font-size: 0.8rem;
