@@ -72,6 +72,7 @@ export interface Appointment {
   client_tz: string
   ph_time: string
   utc: string
+  duration_minutes: number
   /* Present on the public status payload. */
   meeting_type?: 'online' | 'inperson' | null
   meeting_link?: string | null

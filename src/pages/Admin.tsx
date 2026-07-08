@@ -29,13 +29,10 @@ import {
 import {
   COMMON_TZS,
   COUNTRY_DEFAULT_TZ,
-  formatInZone,
   PH_TZ,
-  phMinutes,
   timeNowIn,
   tzOffsetLabel,
   tzOptions,
-  zonedToDate,
   type TzOption,
 } from '../lib/timezones'
 import css from '../styles/pages/Admin.module.css'
@@ -77,8 +74,8 @@ interface DataDate {
 
 interface Slot {
   time: string /* HH:MM, client-local */
-  client_label: string /* "6:00 AM" */
-  ph_label: string /* "Wed · 10:00 AM" */
+  client_label: string /* "6:00 AM - 7:00 AM" */
+  ph_label: string /* "Wed · 10:00 AM - 11:00 AM" */
   taken: boolean
   past: boolean
 }
@@ -165,6 +162,21 @@ const INCOME_LABEL: Record<string, string> = {
 }
 
 const peso = (n: number) => `₱${n.toLocaleString('en-US')}`
+
+const DURATIONS = [30, 60, 90, 120] as const
+
+function durationLabel(minutes: number): string {
+  switch (minutes) {
+    case 30:
+      return '30 min'
+    case 60:
+      return '1 hour'
+    case 90:
+      return '1.5 hours'
+    default:
+      return '2 hours'
+  }
+}
 
 /* "https://meet.google.com/abc-defg-hij" -> "abc-defg-hij". */
 function meetCode(link: string): string | null {
@@ -674,7 +686,7 @@ function AccountView({ token, onExpired }: { token: string; onExpired: () => voi
           onChange={(e) => setEmail(e.target.value)}
         />
         <p className={css.tinyHint}>
-          Used to sign in here, and every inquiry notification and call reminder is sent to this
+          Used to sign in here, and every inquiry notification and meeting reminder is sent to this
           address.
         </p>
       </div>
@@ -923,7 +935,7 @@ function InquiryCard({
                 onClick={() => setScheduling((s) => !s)}
               >
                 <CalendarClock size={15} aria-hidden />
-                {item.appointment ? 'Reschedule call' : 'Schedule call'}
+                {item.appointment ? 'Reschedule meeting' : 'Schedule meeting'}
               </button>
             )}
             {item.status === 'scheduled' && (
@@ -942,7 +954,7 @@ function InquiryCard({
                   disabled={busy}
                   onClick={unschedule}
                 >
-                  Cancel schedule
+                  Cancel meeting
                 </button>
               </>
             )}
@@ -1023,6 +1035,7 @@ function ScheduleForm({
   const [tz, setTz] = useState(item.country !== 'PH' ? defaultTz : PH_TZ)
   const [date, setDate] = useState('')
   const [time, setTime] = useState('')
+  const [duration, setDuration] = useState(60)
   const [meetingType, setMeetingType] = useState<'online' | 'inperson'>('online')
   const [meetLink, setMeetLink] = useState('')
   const [slots, setSlots] = useState<Slot[] | null>(null)
@@ -1035,8 +1048,10 @@ function ScheduleForm({
   const effectiveType = abroad ? 'online' : meetingType
   const linkOk = /^https:\/\/\S+\.\S+/.test(meetLink.trim())
 
-  /* Fair slots for the picked date: hours that suit BOTH the client's local
-     clock and PH work hours, with already-booked hours flagged. */
+  /* Fair slots for the picked date + duration: hours that suit BOTH the
+     client's local clock and PH work hours for the meeting's full length,
+     with already-booked hours flagged. Changing the duration re-shapes the
+     slot list (e.g. a 2-hour meeting offers fewer, earlier start times). */
   useEffect(() => {
     if (!date) {
       setSlots(null)
@@ -1046,7 +1061,8 @@ function ScheduleForm({
     setSlotsLoading(true)
     setTime('')
     getJson<{ ok: boolean; slots: Slot[] }>(
-      `/admin.php?view=slots&date=${date}&tz=${encodeURIComponent(effectiveTz)}&kind=${kind}&id=${item.id}`,
+      `/admin.php?view=slots&date=${date}&tz=${encodeURIComponent(effectiveTz)}` +
+        `&duration=${duration}&kind=${kind}&id=${item.id}`,
       token,
     )
       .then((r) => {
@@ -1061,13 +1077,7 @@ function ScheduleForm({
     return () => {
       stale = true
     }
-  }, [date, effectiveTz, kind, item.id, token])
-  const instant = date && time ? zonedToDate(date, time, effectiveTz) : null
-  const phPreview = instant ? formatInZone(instant, PH_TZ) : null
-  const minutes = instant ? phMinutes(instant) : null
-  const insideHours =
-    minutes !== null && minutes >= workHours.start * 60 && minutes <= workHours.end * 60
-  const inFuture = instant !== null && instant.getTime() > Date.now()
+  }, [date, effectiveTz, duration, kind, item.id, token])
 
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -1089,6 +1099,7 @@ function ScheduleForm({
           date,
           time,
           tz: effectiveTz,
+          duration,
           meeting_type: effectiveType,
           meeting_link: effectiveType === 'online' ? meetLink.trim() : '',
         },
@@ -1110,13 +1121,29 @@ function ScheduleForm({
   return (
     <form className={css.scheduleForm} onSubmit={submit}>
       <p className={css.scheduleTitle}>
-        <CalendarClock size={15} aria-hidden /> Schedule the call
+        <CalendarClock size={15} aria-hidden /> Schedule the meeting
       </p>
       <p className={css.scheduleHint}>
         Pick the client's date and we'll suggest hours that are <strong>daytime for both
         sides</strong>: 6 AM–8 PM on the client's clock and {hour12(workHours.start)}–
         {hour12(workHours.end)} here. Hours already booked by another client are blocked.
       </p>
+
+      <div className="field">
+        <label>Duration</label>
+        <div className={css.meetTypeRow}>
+          {DURATIONS.map((d) => (
+            <button
+              key={d}
+              type="button"
+              className={duration === d ? css.meetTypeActive : css.meetType}
+              onClick={() => setDuration(d)}
+            >
+              {durationLabel(d)}
+            </button>
+          ))}
+        </div>
+      </div>
 
       <label className={css.abroadToggle}>
         <input
@@ -1241,26 +1268,6 @@ function ScheduleForm({
         </div>
       )}
 
-      {instant && (
-        <p className={insideHours && inFuture ? css.previewOk : css.previewBad}>
-          {!inFuture ? (
-            <>That moment has already passed.</>
-          ) : (
-            <>
-              Sa Pilipinas: <strong>{phPreview}</strong>
-              {insideHours
-                ? ' — within work hours ✓'
-                : ` — OUTSIDE work hours (${hour12(workHours.start)}–${hour12(workHours.end)} PH)`}
-              {effectiveTz !== PH_TZ && (
-                <span className={css.tinyHint}>
-                  Client's time: {formatInZone(instant, effectiveTz)} ({effectiveTz})
-                </span>
-              )}
-            </>
-          )}
-        </p>
-      )}
-
       {error && (
         <p className="alert alert--error" role="alert">
           {error}
@@ -1270,9 +1277,7 @@ function ScheduleForm({
       <button
         type="submit"
         className="btn btn--solid btn--sm"
-        disabled={
-          busy || !instant || !insideHours || !inFuture || (effectiveType === 'online' && !linkOk)
-        }
+        disabled={busy || !time || (effectiveType === 'online' && !linkOk)}
       >
         {busy ? 'Saving…' : 'Save & email the client'}
       </button>

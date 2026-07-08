@@ -752,23 +752,6 @@
   margin-top: 0.25rem;
 }
 
-.previewOk,
-.previewBad {
-  font-size: 0.9rem;
-  border-radius: var(--radius-sm);
-  padding: 0.6rem 0.8rem;
-}
-
-.previewOk {
-  background: #e3f6e0;
-  color: var(--c-green-deep);
-}
-
-.previewBad {
-  background: #fde7e4;
-  color: var(--c-red);
-}
-
 .scheduleForm button {
   justify-self: start;
 }

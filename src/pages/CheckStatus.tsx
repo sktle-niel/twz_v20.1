@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { CalendarClock, CheckCircle2, CircleDashed, MapPin, PhoneCall, Search, Video } from 'lucide-react'
+import { CalendarClock, CheckCircle2, CircleDashed, MapPin, Search, Video } from 'lucide-react'
 import PageHero from '../components/PageHero'
 import { usePageTitle } from '../hooks/usePageTitle'
 import { getJson, type Appointment, type InquiryStatus } from '../lib/api'
@@ -27,8 +27,8 @@ const STATUS_COPY: Record<InquiryStatus, { label: string; blurb: string }> = {
     blurb: 'Our team has reached out to you. Keep an eye on your phone and email.',
   },
   scheduled: {
-    label: 'Call Scheduled',
-    blurb: 'Your call with our team is booked — details below.',
+    label: 'Meeting Scheduled',
+    blurb: 'Your meeting with our team is booked — details below.',
   },
   completed: {
     label: 'Completed',
@@ -170,7 +170,7 @@ export default function CheckStatus() {
               {result.appointment && (
                 <div className={css.appointment}>
                   <p className={css.appointmentKicker}>
-                    <PhoneCall size={15} aria-hidden /> Your scheduled call
+                    <CalendarClock size={15} aria-hidden /> Your scheduled meeting
                   </p>
                   <p className={css.appointmentTime}>
                     <CalendarClock size={18} aria-hidden />
