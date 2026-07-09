@@ -20,6 +20,7 @@ import {
 import { COUNTRIES, getCountry } from '../data/countries'
 import { isMeaningfulText, isValidFullName } from '../lib/validate'
 import { ApiError, postJson } from '../lib/api'
+import { useToast } from './Toast'
 import css from '../styles/components/FranchiseWizard.module.css'
 
 const STEPS = ['ask', 'amount', 'name', 'contact', 'location', 'income', 'message', 'done'] as const
@@ -81,6 +82,7 @@ export function useFranchiseWizard() {
 export default function FranchiseWizard({ children }: { children: ReactNode }) {
   const routerLocation = useLocation()
   const navigate = useNavigate()
+  const toast = useToast()
   const onFranchisePage = routerLocation.pathname === '/franchise'
 
   const [open, setOpen] = useState(false)
@@ -184,13 +186,44 @@ export default function FranchiseWizard({ children }: { children: ReactNode }) {
     }
   })()
 
+  /* What to tell the visitor when Continue/Submit is pressed but the step
+     isn't ready yet — names whichever field is empty or still looks wrong. */
+  function missingMessage(): string {
+    switch (step) {
+      case 'amount':
+        if (data.amount === null) return 'Please enter how much you can invest.'
+        return `Sorry, applications below ${formatPeso(MIN_FRANCHISE_INVESTMENT)} can't proceed for now.`
+      case 'name':
+        return data.name.trim() === ''
+          ? 'Please enter your complete name.'
+          : 'Please enter your real complete name, first and last.'
+      case 'contact':
+        if (!emailValid && !mobileValid) return 'Please enter a valid email and mobile number.'
+        return !emailValid ? 'Please enter a valid email address.' : 'Please enter a valid mobile number.'
+      case 'location':
+        return data.location.trim() === ''
+          ? 'Please enter your preferred location.'
+          : 'Please enter a real city or municipality name.'
+      case 'income':
+        if (data.income === '') return 'Please select your source of income.'
+        return 'Please describe your income source in real words.'
+      case 'message':
+        return 'Some of that text doesn\'t look readable. Please rephrase it, or leave the message blank.'
+      default:
+        return 'Please complete this step.'
+    }
+  }
+
   function goBack() {
     if (stepIndex > 0) setStep(STEPS[stepIndex - 1])
   }
 
   async function goNext(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    if (!canContinue) return
+    if (!canContinue) {
+      toast.error(missingMessage())
+      return
+    }
 
     if (step === 'message') {
       setSending(true)
@@ -558,7 +591,7 @@ export default function FranchiseWizard({ children }: { children: ReactNode }) {
                   <button
                     type="submit"
                     className={`btn btn--solid btn--sm ${css.continue}`}
-                    disabled={!canContinue}
+                    disabled={sending}
                   >
                     {step === 'message' ? (sending ? 'Submitting…' : 'Submit Application') : 'Continue'}
                   </button>

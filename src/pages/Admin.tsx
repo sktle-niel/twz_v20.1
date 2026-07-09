@@ -18,6 +18,7 @@ import {
   XCircle,
 } from 'lucide-react'
 import { usePageTitle } from '../hooks/usePageTitle'
+import { useToast } from '../components/Toast'
 import {
   ApiError,
   deleteJson,
@@ -1030,6 +1031,7 @@ function ScheduleForm({
   onDone: (patch: Partial<Inquiry>) => void
   onExpired: () => void
 }) {
+  const toast = useToast()
   const defaultTz = COUNTRY_DEFAULT_TZ[item.country] ?? PH_TZ
   const [abroad, setAbroad] = useState(item.country !== 'PH')
   const [tz, setTz] = useState(item.country !== 'PH' ? defaultTz : PH_TZ)
@@ -1081,6 +1083,22 @@ function ScheduleForm({
 
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
+
+    /* Tell the admin exactly what's still missing instead of leaving the
+       button silently disabled. */
+    if (!date) {
+      toast.error('Please pick a date first.')
+      return
+    }
+    if (!time) {
+      toast.error('Please pick a time slot.')
+      return
+    }
+    if (effectiveType === 'online' && !linkOk) {
+      toast.error('Please add the Google Meet link.')
+      return
+    }
+
     setBusy(true)
     setError('')
     try {
@@ -1119,7 +1137,7 @@ function ScheduleForm({
   }
 
   return (
-    <form className={css.scheduleForm} onSubmit={submit}>
+    <form className={css.scheduleForm} onSubmit={submit} noValidate>
       <p className={css.scheduleTitle}>
         <CalendarClock size={15} aria-hidden /> Schedule the meeting
       </p>
@@ -1277,7 +1295,7 @@ function ScheduleForm({
       <button
         type="submit"
         className="btn btn--solid btn--sm"
-        disabled={busy || !time || (effectiveType === 'online' && !linkOk)}
+        disabled={busy}
       >
         {busy ? 'Saving…' : 'Save & email the client'}
       </button>

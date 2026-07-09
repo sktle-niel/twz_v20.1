@@ -7,13 +7,25 @@ import { SITE } from '../data/site'
 import { COUNTRIES, getCountry } from '../data/countries'
 import { isMeaningfulText } from '../lib/validate'
 import { ApiError, postJson } from '../lib/api'
+import { useToast } from '../components/Toast'
 import heroImg from '../assets/hero/hero-2.jpg'
 import css from '../styles/pages/Contact.module.css'
 
 type FormStatus = 'idle' | 'sending' | 'success'
 
+/* Friendly, field-specific toast messages for whatever's left unfilled or
+   invalid when the visitor tries to submit. */
+const REQUIRED_MESSAGES: Record<string, string> = {
+  name: 'Please enter your name.',
+  mobile: 'Please enter a valid mobile number.',
+  email: 'Please enter a valid email address.',
+  subject: 'Please enter a subject.',
+  message: 'Please enter your message.',
+}
+
 export default function Contact() {
   usePageTitle('Contact Us')
+  const toast = useToast()
   const [status, setStatus] = useState<FormStatus>('idle')
   const [countryIso, setCountryIso] = useState('PH')
   const [error, setError] = useState('')
@@ -23,20 +35,31 @@ export default function Contact() {
     e.preventDefault()
     const form = e.currentTarget
 
+    /* Native required/pattern/type checks first — toast names the exact
+       field instead of the browser's own validation bubble. */
+    if (!form.checkValidity()) {
+      const invalid = form.querySelector<HTMLInputElement>(':invalid')
+      toast.error(
+        (invalid && REQUIRED_MESSAGES[invalid.name]) || 'Please complete the highlighted field.',
+      )
+      invalid?.focus()
+      return
+    }
+
     /* Reject gibberish in the free-text fields. */
     const nameValue = (form.elements.namedItem('name') as HTMLInputElement).value
     const subjectValue = (form.elements.namedItem('subject') as HTMLInputElement).value
     const messageValue = (form.elements.namedItem('message') as HTMLTextAreaElement).value
     if (!isMeaningfulText(nameValue)) {
-      setError('Please enter your real name.')
+      toast.error('Please enter your real name.')
       return
     }
     if (!isMeaningfulText(subjectValue)) {
-      setError('Please enter a readable subject.')
+      toast.error('Please enter a readable subject.')
       return
     }
     if (!isMeaningfulText(messageValue)) {
-      setError('Your message contains text we could not read. Please rephrase it.')
+      toast.error('Your message contains text we could not read. Please rephrase it.')
       return
     }
 
@@ -91,7 +114,7 @@ export default function Contact() {
               </p>
             )}
 
-            <form onSubmit={handleSubmit} className={css.form}>
+            <form onSubmit={handleSubmit} className={css.form} noValidate>
               {/* Honeypot: hidden from real users; bots that fill it get silently dropped. */}
               <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px' }}>
                 <label htmlFor="hp">Leave this field empty</label>

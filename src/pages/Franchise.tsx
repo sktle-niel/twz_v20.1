@@ -12,6 +12,7 @@ import {
 import { COUNTRIES, getCountry } from '../data/countries'
 import { isMeaningfulText, isValidFullName } from '../lib/validate'
 import { ApiError, postJson } from '../lib/api'
+import { useToast } from '../components/Toast'
 import heroImg from '../assets/about/franchise.jpg'
 import css from '../styles/pages/Franchise.module.css'
 
@@ -19,8 +20,22 @@ type FormStatus = 'idle' | 'sending' | 'success'
 
 const maxUnits = Math.max(...MARKET_UNITS.map((m) => m.units))
 
+/* Friendly, field-specific toast messages for whatever's left unfilled or
+   invalid when the visitor tries to submit. */
+const REQUIRED_MESSAGES: Record<string, string> = {
+  name: 'Please enter your full name.',
+  mobile: 'Please enter a valid mobile number.',
+  email: 'Please enter a valid email address.',
+  findUs: 'Please tell us how you found us.',
+  location: 'Please enter your preferred location.',
+  estimatedInvestment: 'Please enter your estimated investment.',
+  sourceOfIncome: 'Please select your source of income.',
+  otherSource: 'Please describe your other income source.',
+}
+
 export default function Franchise() {
   usePageTitle('Franchise Us')
+  const toast = useToast()
   const [status, setStatus] = useState<FormStatus>('idle')
   const [incomeSource, setIncomeSource] = useState('')
   const [countryIso, setCountryIso] = useState('PH')
@@ -32,9 +47,20 @@ export default function Franchise() {
     e.preventDefault()
     const form = e.currentTarget
 
+    /* Native required/pattern/type checks first — toast names the exact
+       field instead of the browser's own validation bubble. */
+    if (!form.checkValidity()) {
+      const invalid = form.querySelector<HTMLInputElement>(':invalid')
+      toast.error(
+        (invalid && REQUIRED_MESSAGES[invalid.name]) || 'Please complete the highlighted field.',
+      )
+      invalid?.focus()
+      return
+    }
+
     /* Franchise qualification: applications below the minimum can't proceed. */
     if (investment === null || investment < MIN_FRANCHISE_INVESTMENT) {
-      setError(
+      toast.error(
         `A minimum investment of ${formatPeso(MIN_FRANCHISE_INVESTMENT)} is required to open a Two Wheels Zone franchise.`,
       )
       return
@@ -45,22 +71,22 @@ export default function Franchise() {
     const locationValue = (form.elements.namedItem('location') as HTMLInputElement).value
     const messageValue = (form.elements.namedItem('message') as HTMLTextAreaElement).value
     if (!isValidFullName(nameValue)) {
-      setError('Please enter your real complete name, first and last name.')
+      toast.error('Please enter your real complete name, first and last name.')
       return
     }
     if (!isMeaningfulText(locationValue)) {
-      setError('Please enter a real location (city or municipality).')
+      toast.error('Please enter a real location (city or municipality).')
       return
     }
     if (incomeSource === 'other') {
       const otherValue = (form.elements.namedItem('otherSource') as HTMLInputElement).value
       if (!isMeaningfulText(otherValue)) {
-        setError('Please describe your source of income in real words.')
+        toast.error('Please describe your source of income in real words.')
         return
       }
     }
     if (messageValue.trim() && !isMeaningfulText(messageValue)) {
-      setError('Your message contains text we could not read. Please rephrase it.')
+      toast.error('Your message contains text we could not read. Please rephrase it.')
       return
     }
 
@@ -177,7 +203,7 @@ export default function Franchise() {
               </p>
             )}
 
-            <form onSubmit={handleSubmit} className={css.form}>
+            <form onSubmit={handleSubmit} className={css.form} noValidate>
               {/* Honeypot: hidden from real users; bots that fill it get silently dropped. */}
               <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px' }}>
                 <label htmlFor="fr-hp">Leave this field empty</label>
