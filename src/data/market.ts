@@ -15,9 +15,3 @@ export const MARKET_UNITS: MarketYear[] = [
   { year: 2026, units: 2.4, projected: true },
 ]
 
-export const FRANCHISE_OFFERS = [
-  'Complete training program',
-  'Marketing & branding support',
-  'Proven business model',
-  'Ongoing operational guidance',
-]

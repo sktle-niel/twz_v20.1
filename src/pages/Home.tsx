@@ -4,6 +4,7 @@ import { motion, useReducedMotion, type Variants } from 'motion/react'
 import { FacebookIcon } from '../components/icons'
 import Carousel, { type Slide } from '../components/Carousel'
 import SectionHeading from '../components/SectionHeading'
+import PackageInclusions from '../components/PackageInclusions'
 import Reveal, { EASE } from '../components/motion/Reveal'
 import Parallax from '../components/motion/Parallax'
 import { useFranchiseWizard } from '../components/FranchiseWizard'
@@ -187,6 +188,21 @@ export default function Home() {
               </a>
             </article>
           </div>
+        </div>
+      </section>
+
+      {/* ── Franchise package ── */}
+      <section className="section">
+        <div className={`container ${css.packageWrap}`}>
+          <SectionHeading
+            center
+            kicker="Franchise Opportunity"
+            title="A Complete Package, Ready to Operate"
+            lede="Everything you need to open your own Two Wheels Zone branch — equipment, starting inventory, and hands-on support included."
+          />
+          <Reveal y={24} className={css.packageCard}>
+            <PackageInclusions />
+          </Reveal>
         </div>
       </section>
 

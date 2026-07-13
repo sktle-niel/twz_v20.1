@@ -14,28 +14,8 @@
   color: var(--c-text);
 }
 
-.offersTitle {
+.package {
   margin-top: 1.8rem;
-  font-size: 1.25rem;
-}
-
-.offers {
-  display: grid;
-  gap: 0.55rem;
-  margin-top: 0.8rem;
-}
-
-.offers li {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  font-size: 0.95rem;
-  font-weight: 500;
-}
-
-.offers svg {
-  flex-shrink: 0;
-  color: var(--c-green-deep);
 }
 
 /* ── Market chart ── */

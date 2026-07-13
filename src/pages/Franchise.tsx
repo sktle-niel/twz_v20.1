@@ -1,8 +1,9 @@
 import { useState, type FormEvent } from 'react'
-import { CheckCircle2, Send, TrendingUp } from 'lucide-react'
+import { Send, TrendingUp } from 'lucide-react'
 import PageHero from '../components/PageHero'
+import PackageInclusions from '../components/PackageInclusions'
 import { usePageTitle } from '../hooks/usePageTitle'
-import { FRANCHISE_OFFERS, MARKET_UNITS } from '../data/market'
+import { MARKET_UNITS } from '../data/market'
 import {
   formatPeso,
   INCOME_SOURCES,
@@ -144,15 +145,9 @@ export default function Franchise() {
               CASA-quality services at affordable prices.
             </p>
 
-            <h3 className={css.offersTitle}>What we offer</h3>
-            <ul className={css.offers}>
-              {FRANCHISE_OFFERS.map((offer) => (
-                <li key={offer}>
-                  <CheckCircle2 size={19} aria-hidden />
-                  {offer}
-                </li>
-              ))}
-            </ul>
+            <div className={css.package}>
+              <PackageInclusions />
+            </div>
 
             {/* ── Market chart ── */}
             <figure className={`card ${css.chart}`}>

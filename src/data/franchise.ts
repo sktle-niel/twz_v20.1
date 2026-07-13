@@ -25,6 +25,34 @@ export function humanizePeso(amount: number): string {
   return formatPeso(amount)
 }
 
+/* Complete franchise package — what's physically included on top of the
+   investment itself (equipment + starting inventory + business support). */
+export interface PackageList {
+  title: string
+  items: string[]
+}
+
+export const PACKAGE_EQUIPMENT: PackageList = {
+  title: 'Equipment Included',
+  items: [
+    'Tire Changer Machine',
+    'Air Compressor',
+    'Motorcycle Lifter',
+    'CCTV System',
+    'POS System (Loyverse)',
+  ],
+}
+
+export const PACKAGE_SUPPORT: PackageList = {
+  title: 'Full Business Support',
+  items: ['Setup Assistance', 'Staff Training', 'Marketing Support', 'Proven System'],
+}
+
+/* Parts & accessories starting stock, bundled into the package. */
+export const PACKAGE_PARTS_VALUE = 600_000
+
+export const PACKAGE_TAGS = ['High Demand', 'Fast ROI', 'Profitable Business']
+
 export interface IncomeSource {
   value: string
   label: string

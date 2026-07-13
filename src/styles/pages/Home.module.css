@@ -55,6 +55,15 @@
   background: rgb(255 255 255 / 0.12);
 }
 
+/* ── Franchise package ── */
+.packageWrap {
+  max-width: 900px;
+}
+
+.packageCard {
+  margin-top: 2.4rem;
+}
+
 /* ── Casa Quality banner ── */
 .casaBand {
   background: var(--c-yellow);

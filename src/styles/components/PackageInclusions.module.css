@@ -1,0 +1,79 @@
+.card {
+  padding: 1.7rem 1.8rem;
+  display: grid;
+  gap: 1.3rem;
+  border-top: 4px solid var(--c-yellow);
+}
+
+.lists {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.4rem;
+}
+
+.lists h3 {
+  font-size: 0.92rem;
+  font-weight: 700;
+  margin-bottom: 0.65rem;
+}
+
+.lists ul {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.lists li {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.lists svg {
+  flex-shrink: 0;
+  color: var(--c-green-deep);
+}
+
+.value {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.9rem 1rem;
+  border-radius: var(--radius-sm);
+  background: var(--c-paper-2);
+  text-align: center;
+  font-size: 0.88rem;
+  color: var(--c-muted);
+}
+
+.value strong {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  letter-spacing: 0.02em;
+  color: var(--c-green-deep);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.tags li {
+  padding: 0.32rem 0.9rem;
+  border-radius: 999px;
+  background: var(--c-ink);
+  color: var(--c-yellow);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 560px) {
+  .lists {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
